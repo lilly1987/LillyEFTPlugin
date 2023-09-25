@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace BepInPluginSample
 {
@@ -113,6 +114,7 @@ namespace BepInPluginSample
         static ItemsPanel itemsPanel;
         static GameObject ocontent;
         static Transform tcontent=null;
+        static Transform containers = null;
 
         [HarmonyPatch(typeof(ItemsPanel), "Show")]
         [HarmonyPostfix]
@@ -124,9 +126,13 @@ namespace BepInPluginSample
             // Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/
             //ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
             //logger.LogWarning($"ItemsPanel_Show {ocontent.name}");
-            tcontent = itemsPanel.Transform.Find("Containers Panel/Scrollview Parent/Containers Scrollview/Content");
+            containers = itemsPanel.Transform.Find("Containers Panel");
+            tcontent = containers.transform.Find("Scrollview Parent/Containers Scrollview/Content");
             logger.LogWarning($"ItemsPanel_Show {tcontent.name}");
             my.size_SettingChanged(null, null);
+            // slotView.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
+            //containers.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
+
             /*
             foreach (Transform child in ocontent.transform)
             {
