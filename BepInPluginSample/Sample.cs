@@ -104,6 +104,11 @@ namespace BepInPluginSample
             //    tcontent.transform.localScale = Vector3.one * size.Value;
             if (tcontent)
                 tcontent.localScale = Vector3.one * size.Value;
+            else
+            {
+                tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
+                tcontent.localScale = Vector3.one * size.Value;
+            }
         }
         #endregion
         /*
