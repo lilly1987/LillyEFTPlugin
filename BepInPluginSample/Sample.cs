@@ -22,15 +22,21 @@ namespace BepInPluginSample
         static Harmony harmony;
         static ManualLogSource logger;
 
-        static ConfigEntry<float> size;
 
         static bool ContainersPanelOn=false;
+
+        static ConfigEntry<bool> SlotOn;
+        static ConfigEntry<float> size;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> sizeKey;
 
         static ConfigEntry<bool> SlotPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SlotPanelKey;
 
-        static ConfigEntry<bool> WidePanel;
-        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> WidePanelKey;
+        static ConfigEntry<bool> LeftPanel;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> LeftPanelKey;
+
+        static ConfigEntry<bool> StashPanel;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> StashPanelKey;
         // =========================================================
         #endregion
 
@@ -45,12 +51,17 @@ namespace BepInPluginSample
             #region 변수 설정
             // =========================================================
             size = Config.Bind("GUI", "Containers", 0.75f);
+            SlotOn = Config.Bind("GUI", "ContainersSizeOn", true);
+            sizeKey = Config.Bind("GUI", "ContainersSizeKey", new KeyboardShortcut(KeyCode.W));// 이건 단축키
 
             SlotPanel = Config.Bind("GUI", "SlotPanel", true);
             SlotPanelKey= Config.Bind("GUI", "SlotPanelKey", new KeyboardShortcut(KeyCode.S));// 이건 단축키
 
-            WidePanel = Config.Bind("GUI", "WidePanel", true);
-            WidePanelKey = Config.Bind("GUI", "WidePanelKey", new KeyboardShortcut(KeyCode.A));// 이건 단축키
+            LeftPanel = Config.Bind("GUI", "Left Panel", true);
+            LeftPanelKey = Config.Bind("GUI", "Left Panel Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
+
+            StashPanel = Config.Bind("GUI", "StashPanel", true);
+            StashPanelKey = Config.Bind("GUI", "StashPanelKey", new KeyboardShortcut(KeyCode.D));// 이건 단축키
             // =========================================================
             #endregion
         }
@@ -68,24 +79,17 @@ namespace BepInPluginSample
                 Logger.LogError("harmony");
                 Logger.LogError(e.ToString());
             }
-            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
-            {
+
                 size.SettingChanged += size_SettingChanged;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError("size_SettingChanged");
-                Logger.LogError(e.ToString());
-            }
-            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
-            {
+                SlotOn.SettingChanged += size_SettingChanged;
+                sizeKey.SettingChanged += size_SettingChanged;
+
                 SlotPanel.SettingChanged += slot_SettingChanged;                
-            }
-            catch (Exception e)
-            {
-                Logger.LogError("slot_SettingChanged");
-                Logger.LogError(e.ToString());
-            }
+
+                LeftPanel.SettingChanged += LeftPanel_SettingChanged;                
+
+                StashPanel.SettingChanged += StashPanel_SettingChanged;                
+
         }
 
         public void Update()
@@ -95,9 +99,17 @@ namespace BepInPluginSample
             {
                 SlotPanel.Value = !SlotPanel.Value;
             }
-            if (WidePanelKey.Value.IsUp())// 단축키가 일치할때
+            if (sizeKey.Value.IsUp())// 단축키가 일치할때
             {
-                WidePanel.Value = !WidePanel.Value;
+                SlotOn.Value = !SlotOn.Value;
+            }
+            if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
+            {
+                LeftPanel.Value = !LeftPanel.Value;
+            }
+            if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
+            {
+                StashPanel.Value = !StashPanel.Value;
             }
             #endregion
         }
@@ -107,13 +119,89 @@ namespace BepInPluginSample
             Logger.LogWarning("OnDisable");
             harmony?.UnpatchSelf();
             size.SettingChanged -= size_SettingChanged;
+            SlotOn.SettingChanged -= size_SettingChanged;
+            sizeKey.SettingChanged -= size_SettingChanged;
             SlotPanel.SettingChanged -= slot_SettingChanged;
+            LeftPanel.SettingChanged -= LeftPanel_SettingChanged;
+            StashPanel.SettingChanged -= StashPanel_SettingChanged;
+        }
+
+
+
+        #region size_SettingChanged
+        public void size_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"size_SettingChanged {size.Value}");
+            if (SlotOn.Value)
+            {
+                tContent.localScale = Vector3.one * size.Value;
+            }
+            else
+                tContent.localScale = Vector3.one;
+        }
+        #endregion
+
+        #region slot_SettingChanged
+        public void slot_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"slot_SettingChanged {ContainersPanelOn}");
+            if (ContainersPanelOn)
+            {
+                if (!TacticalVest) TacticalVest = tContent.transform.Find("TacticalVest Slot/Slot Panel");
+                if (!Backpack) Backpack = tContent.transform.Find("Backpack Slot/Slot Panel");
+                if (!SecuredContainer) SecuredContainer = tContent.transform.Find("SecuredContainer Slot/Slot Panel");
+                TacticalVest.gameObject.SetActive(SlotPanel.Value);
+                Backpack.gameObject.SetActive(SlotPanel.Value);
+                SecuredContainer.gameObject.SetActive(SlotPanel.Value);
+            }
+        }
+        #endregion
+
+        #region Wide_SettingChanged
+        public void LeftPanel_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"Wide_SettingChanged {LeftPanel.Value} {rContainersPaneloffsetMin.x} {rLeftPanel.sizeDelta.x}");
+            if (LeftPanel.Value)
+            {
+                rContainersPanel.offsetMin = new Vector2(rContainersPaneloffsetMin.x - rLeftPanel.rect.size.x, rContainersPaneloffsetMin.y);
+            }
+            else
+            {
+                rContainersPanel.offsetMin = rContainersPaneloffsetMin;
+            }
+        }
+        #endregion
+
+        private void StashPanel_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"StashPanel_SettingChanged {StashPanel.Value}");
+            tStashPanel.gameObject.SetActive(!StashPanel.Value);
+            if (StashPanel.Value)
+            {
+                rContainersPanel.offsetMax = new Vector2(rContainersPaneloffsetMax.x + rStashPanel.rect.size.x, rContainersPaneloffsetMax.y);
+            }
+            else
+            {
+                rContainersPanel.offsetMax = rContainersPaneloffsetMax;
+            }
         }
 
         #region Harmony
 
         static InventoryScreen inventoryScreen;
-        static Transform tcontent = null;
+        static Transform tItemsPanel = null;
+        static Transform tLeftPanel = null;
+        static Transform tGearPanel = null;
+        static Transform tContainersPanel = null;
+        static Transform tStashPanel = null;
+        static Transform tContent = null;
+        static RectTransform rContainersPanel = null;
+        static RectTransform rStashPanel = null;
+        static RectTransform rLeftPanel = null;
+        static RectTransform rGearPanel = null;
+        //static RectTransform lGearPanel = null;
+        static Vector2 rContainersPaneloffsetMin ;
+        static Vector2 rContainersPaneloffsetMax ;
         static Transform TacticalVest = null;
         static Transform Backpack = null;
         static Transform SecuredContainer = null;
@@ -122,8 +210,29 @@ namespace BepInPluginSample
         [HarmonyPostfix]
         public static void InventoryScreen_Awake(InventoryScreen __instance)
         {
+
             logger.LogWarning($"InventoryScreen_Awake ");
             inventoryScreen = __instance;
+
+            tItemsPanel = inventoryScreen.transform.Find("Items Panel");
+            
+            tContainersPanel= tItemsPanel.transform.Find("Containers Panel");
+
+            rContainersPanel=(RectTransform)tContainersPanel;
+            rContainersPaneloffsetMin=rContainersPanel.offsetMin;
+            rContainersPaneloffsetMax=rContainersPanel.offsetMax;
+            
+            tContent = tContainersPanel.transform.Find("Scrollview Parent/Containers Scrollview/Content");
+
+            tStashPanel = tItemsPanel.transform.Find("Stash Panel");
+            rStashPanel = (RectTransform)tStashPanel;
+
+            tLeftPanel = tItemsPanel.transform.Find("Left Panel");
+            rLeftPanel = (RectTransform)tLeftPanel;
+
+            tGearPanel = tLeftPanel.transform.Find("Gear Panel");
+            rGearPanel = (RectTransform)tGearPanel;
+//            lGearPanel = (RectTransform)tGearPanel;
         }
 
         [HarmonyPatch(typeof(ContainersPanel), "Show")]
@@ -132,10 +241,6 @@ namespace BepInPluginSample
         {
             logger.LogWarning($"ContainersPanel_Show ");
             ContainersPanelOn = true;
-            if (!tcontent)
-            {
-                tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
-            }
             my.size_SettingChanged(null, null);
             my.slot_SettingChanged(null, null);
         }
@@ -148,29 +253,7 @@ namespace BepInPluginSample
             ContainersPanelOn = false;
         }
 
-        #region size_SettingChanged
-        public void size_SettingChanged(object sender, EventArgs e)
-        {
-            logger.LogInfo($"size_SettingChanged {size.Value}");
-            tcontent.localScale = Vector3.one * size.Value;
-        }
-        #endregion
 
-        #region slot_SettingChanged
-        public void slot_SettingChanged(object sender, EventArgs e)
-        {
-            logger.LogInfo($"slot_SettingChanged {ContainersPanelOn}");
-            if (ContainersPanelOn)
-            {
-                if (!TacticalVest) TacticalVest = tcontent.transform.Find("TacticalVest Slot/Slot Panel");
-                if (!Backpack) Backpack = tcontent.transform.Find("Backpack Slot/Slot Panel");
-                if (!SecuredContainer) SecuredContainer = tcontent.transform.Find("SecuredContainer Slot/Slot Panel");
-                TacticalVest.gameObject.SetActive(SlotPanel.Value);
-                Backpack.gameObject.SetActive(SlotPanel.Value);
-                SecuredContainer.gameObject.SetActive(SlotPanel.Value);
-            }
-        }
-        #endregion
         /*
         static ContainersPanel containersPanel;
 
