@@ -21,7 +21,16 @@ namespace BepInPluginSample
         static Sample my;
         static Harmony harmony;
         static ManualLogSource logger;
+
         static ConfigEntry<float> size;
+
+        static bool ContainersPanelOn=false;
+
+        static ConfigEntry<bool> SlotPanel;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SlotPanelKey;
+
+        static ConfigEntry<bool> WidePanel;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> WidePanelKey;
         // =========================================================
         #endregion
 
@@ -37,15 +46,14 @@ namespace BepInPluginSample
             // =========================================================
             size = Config.Bind("GUI", "Containers", 0.75f);
 
-            // hpNotChg = Config.Bind("game", "hpNotChg", true);
-            // xpMulti = Config.Bind("game", "xpMulti", 2f);
+            SlotPanel = Config.Bind("GUI", "SlotPanel", true);
+            SlotPanelKey= Config.Bind("GUI", "SlotPanelKey", new KeyboardShortcut(KeyCode.S));// 이건 단축키
 
+            WidePanel = Config.Bind("GUI", "WidePanel", true);
+            WidePanelKey = Config.Bind("GUI", "WidePanelKey", new KeyboardShortcut(KeyCode.A));// 이건 단축키
             // =========================================================
             #endregion
         }
-
-
-      
 
         public void OnEnable()
         {
@@ -57,32 +65,58 @@ namespace BepInPluginSample
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogError("harmony");
+                Logger.LogError(e.ToString());
             }
             try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
             {
                 size.SettingChanged += size_SettingChanged;
-                size_SettingChanged(null, null);
             }
             catch (Exception e)
             {
-                Logger.LogError(e);
+                Logger.LogError("size_SettingChanged");
+                Logger.LogError(e.ToString());
             }
+            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
+            {
+                SlotPanel.SettingChanged += slot_SettingChanged;                
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("slot_SettingChanged");
+                Logger.LogError(e.ToString());
+            }
+        }
+
+        public void Update()
+        {
+            #region GUI
+            if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
+            {
+                SlotPanel.Value = !SlotPanel.Value;
+            }
+            if (WidePanelKey.Value.IsUp())// 단축키가 일치할때
+            {
+                WidePanel.Value = !WidePanel.Value;
+            }
+            #endregion
         }
 
         public void OnDisable()
         {
             Logger.LogWarning("OnDisable");
             harmony?.UnpatchSelf();
-            size_SettingChanged(null, null);
             size.SettingChanged -= size_SettingChanged;
+            SlotPanel.SettingChanged -= slot_SettingChanged;
         }
 
         #region Harmony
 
         static InventoryScreen inventoryScreen;
-        //static GameObject ocontent = null;
         static Transform tcontent = null;
+        static Transform TacticalVest = null;
+        static Transform Backpack = null;
+        static Transform SecuredContainer = null;
 
         [HarmonyPatch(typeof(InventoryScreen), "Awake")]
         [HarmonyPostfix]
@@ -90,24 +124,50 @@ namespace BepInPluginSample
         {
             logger.LogWarning($"InventoryScreen_Awake ");
             inventoryScreen = __instance;
-            //ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
-            //tcontent=ocontent.transform;
-            tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
         }
 
+        [HarmonyPatch(typeof(ContainersPanel), "Show")]
+        [HarmonyPostfix]
+        public static void ContainersPanel_Show()
+        {
+            logger.LogWarning($"ContainersPanel_Show ");
+            ContainersPanelOn = true;
+            if (!tcontent)
+            {
+                tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
+            }
+            my.size_SettingChanged(null, null);
+            my.slot_SettingChanged(null, null);
+        }
+
+        [HarmonyPatch(typeof(ContainersPanel), "Close")]
+        [HarmonyPostfix]
+        public static void ContainersPanel_Close()
+        {
+            logger.LogWarning($"ContainersPanel_Close");
+            ContainersPanelOn = false;
+        }
 
         #region size_SettingChanged
         public void size_SettingChanged(object sender, EventArgs e)
         {
             logger.LogInfo($"size_SettingChanged {size.Value}");
-            //if (tcontent)
-            //    tcontent.transform.localScale = Vector3.one * size.Value;
-            if (tcontent)
-                tcontent.localScale = Vector3.one * size.Value;
-            else
+            tcontent.localScale = Vector3.one * size.Value;
+        }
+        #endregion
+
+        #region slot_SettingChanged
+        public void slot_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"slot_SettingChanged {ContainersPanelOn}");
+            if (ContainersPanelOn)
             {
-                tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
-                tcontent.localScale = Vector3.one * size.Value;
+                if (!TacticalVest) TacticalVest = tcontent.transform.Find("TacticalVest Slot/Slot Panel");
+                if (!Backpack) Backpack = tcontent.transform.Find("Backpack Slot/Slot Panel");
+                if (!SecuredContainer) SecuredContainer = tcontent.transform.Find("SecuredContainer Slot/Slot Panel");
+                TacticalVest.gameObject.SetActive(SlotPanel.Value);
+                Backpack.gameObject.SetActive(SlotPanel.Value);
+                SecuredContainer.gameObject.SetActive(SlotPanel.Value);
             }
         }
         #endregion
@@ -128,13 +188,7 @@ namespace BepInPluginSample
         }
         */
 
-        [HarmonyPatch(typeof(ContainersPanel), "Show")]
-        [HarmonyPostfix]
-        public static void ContainersPanel_Show(ContainersPanel __instance)
-        {
-            logger.LogWarning($"ContainersPanel_Show ");
-            my.size_SettingChanged(null, null);
-        }  
+
         /*
         static ItemsPanel itemsPanel;
         static Transform containers = null;
