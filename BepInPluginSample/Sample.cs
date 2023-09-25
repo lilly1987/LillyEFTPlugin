@@ -44,14 +44,8 @@ namespace BepInPluginSample
             #endregion
         }
 
-        #region size_SettingChanged
-        public void size_SettingChanged(object sender, EventArgs e)
-        {
-            logger.LogInfo($"size_SettingChanged {size.Value}");
-            if(tcontent)
-                tcontent.transform.localScale = Vector3.one * size.Value;
-        }
-        #endregion
+
+      
 
         public void OnEnable()
         {
@@ -87,6 +81,8 @@ namespace BepInPluginSample
         #region Harmony
 
         static InventoryScreen inventoryScreen;
+        //static GameObject ocontent = null;
+        static Transform tcontent = null;
 
         [HarmonyPatch(typeof(InventoryScreen), "Awake")]
         [HarmonyPostfix]
@@ -94,7 +90,22 @@ namespace BepInPluginSample
         {
             logger.LogWarning($"InventoryScreen_Awake ");
             inventoryScreen = __instance;
+            //ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
+            //tcontent=ocontent.transform;
+            tcontent = inventoryScreen.transform.Find("Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
         }
+
+
+        #region size_SettingChanged
+        public void size_SettingChanged(object sender, EventArgs e)
+        {
+            logger.LogInfo($"size_SettingChanged {size.Value}");
+            //if (tcontent)
+            //    tcontent.transform.localScale = Vector3.one * size.Value;
+            if (tcontent)
+                tcontent.localScale = Vector3.one * size.Value;
+        }
+        #endregion
         /*
         static ContainersPanel containersPanel;
 
@@ -111,39 +122,53 @@ namespace BepInPluginSample
             }
         }
         */
-        static ItemsPanel itemsPanel;
-        static GameObject ocontent;
-        static Transform tcontent=null;
-        static Transform containers = null;
 
+        [HarmonyPatch(typeof(ContainersPanel), "Show")]
+        [HarmonyPostfix]
+        public static void ContainersPanel_Show(ContainersPanel __instance)
+        {
+            logger.LogWarning($"ContainersPanel_Show ");
+            my.size_SettingChanged(null, null);
+        }  
+        /*
+        static ItemsPanel itemsPanel;
+        static Transform containers = null;
         [HarmonyPatch(typeof(ItemsPanel), "Show")]
         [HarmonyPostfix]
         public static void ItemsPanel_Show(ItemsPanel __instance)
         {
             logger.LogWarning($"ItemsPanel_Show ");
             // Common UI/Common UI/InventoryScreen/
-            itemsPanel = __instance;
-            // Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/
-            //ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
-            //logger.LogWarning($"ItemsPanel_Show {ocontent.name}");
-            containers = itemsPanel.Transform.Find("Containers Panel");
-            tcontent = containers.transform.Find("Scrollview Parent/Containers Scrollview/Content");
+            //itemsPanel = __instance;
+            //// Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/
+            ////ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
+            ////logger.LogWarning($"ItemsPanel_Show {ocontent.name}");
+            //if ( containers == null )
+            //{
+            //    containers = itemsPanel.Transform.Find("Containers Panel");
+            //}
+            //if (tcontent == null )
+            //{
+            //    tcontent = containers.transform.Find("Scrollview Parent/Containers Scrollview/Content");
+            //}
             logger.LogWarning($"ItemsPanel_Show {tcontent.name}");
             my.size_SettingChanged(null, null);
             // slotView.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
             //containers.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
 
-            /*
+            
+      
             foreach (Transform child in ocontent.transform)
             {
                 logger.LogWarning($"ItemsPanel_Show {child.name}");
                     //transform.find("Turret/Cannon/spPoint");
             }
-            */
-        }
+
+    }
+        */
         // ====================== 하모니 패치 샘플 ===================================
         /*
-         
+
         [HarmonyPatch(typeof(XPPicker), MethodType.Constructor)]
         [HarmonyPostfix]
         public static void XPPickerCtor(XPPicker __instance, ref float ___pickupRadius)
