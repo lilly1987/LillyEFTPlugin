@@ -23,7 +23,7 @@ namespace BepInPluginSample
         static ManualLogSource logger;
 
 
-        static bool ContainersPanelOn=false;
+        static bool ContainersPanelShow=false;
 
         static ConfigEntry<bool> SlotOn;
         static ConfigEntry<float> size;
@@ -99,7 +99,7 @@ namespace BepInPluginSample
         public void Update()
         {
             #region GUI
-            if (ContainersPanelOn)
+            if (ContainersPanelShow)
             {
                 if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
@@ -153,8 +153,8 @@ namespace BepInPluginSample
         #region slot_SettingChanged
         public void slot_SettingChanged(object sender, EventArgs e)
         {
-            logger.LogInfo($"slot_SettingChanged {ContainersPanelOn}");
-            if (ContainersPanelOn)
+            logger.LogInfo($"slot_SettingChanged {ContainersPanelShow}");
+            if (ContainersPanelShow)
             {
                 if (!TacticalVest) TacticalVest = tContent.transform.Find("TacticalVest Slot/Slot Panel");
                 if (!Backpack) Backpack = tContent.transform.Find("Backpack Slot/Slot Panel");
@@ -226,7 +226,7 @@ namespace BepInPluginSample
 
             logger.LogWarning($"InventoryScreen_Awake ");
             inventoryScreen = __instance;
-
+            
             tItemsPanel = inventoryScreen.transform.Find("Items Panel");
             
             tContainersPanel= tItemsPanel.transform.Find("Containers Panel");
@@ -259,15 +259,31 @@ namespace BepInPluginSample
             my.LeftPanel_SettingChanged(null, null);
             my.StashPanel_SettingChanged(null, null);
         }
-
+        /*
+        [HarmonyPatch(typeof(InventoryScreen), "TranslateCommand")]
+        [HarmonyPostfix]
+        public static void InventoryScreen_TranslateCommand()
+        {
+            logger.LogWarning($"InventoryScreen_TranslateCommand");    
+        }
+        */
         [HarmonyPatch(typeof(ContainersPanel), "Show")]
         [HarmonyPostfix]
         public static void ContainersPanel_Show()
         {
             logger.LogWarning($"ContainersPanel_Show ");
-            ContainersPanelOn = true;
+            ContainersPanelShow = true;
             my.size_SettingChanged(null, null);
             my.slot_SettingChanged(null, null);
+            my.LeftPanel_SettingChanged(null, null);
+        }
+        
+        [HarmonyPatch(typeof(SimpleStashPanel), "Show")]
+        [HarmonyPostfix]
+        public static void SimpleStashPanel_Show()
+        {
+            logger.LogWarning($"SimpleStashPanel_Show ");
+            my.StashPanel_SettingChanged(null, null);
         }
 
         [HarmonyPatch(typeof(ContainersPanel), "Close")]
@@ -275,64 +291,10 @@ namespace BepInPluginSample
         public static void ContainersPanel_Close()
         {
             logger.LogWarning($"ContainersPanel_Close");
-            ContainersPanelOn = false;
+            ContainersPanelShow = false;
         }
 
 
-        /*
-        static ContainersPanel containersPanel;
-
-        [HarmonyPatch(typeof(ContainersPanel), MethodType.Constructor)]
-        [HarmonyPostfix]
-        public static void ContainersPanel_cont(ContainersPanel __instance)
-        {
-            logger.LogWarning($"ContainersPanel_cont ");
-            containersPanel = __instance;
-            foreach (Transform child in containersPanel.Transform)
-            {
-                logger.LogWarning($"ContainersPanel_cont {child.name}");
-                //transform.find("Turret/Cannon/spPoint");
-            }
-        }
-        */
-
-
-        /*
-        static ItemsPanel itemsPanel;
-        static Transform containers = null;
-        [HarmonyPatch(typeof(ItemsPanel), "Show")]
-        [HarmonyPostfix]
-        public static void ItemsPanel_Show(ItemsPanel __instance)
-        {
-            logger.LogWarning($"ItemsPanel_Show ");
-            // Common UI/Common UI/InventoryScreen/
-            //itemsPanel = __instance;
-            //// Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/
-            ////ocontent = GameObject.Find("Common UI/Common UI/InventoryScreen/Items Panel/Containers Panel/Scrollview Parent/Containers Scrollview/Content");
-            ////logger.LogWarning($"ItemsPanel_Show {ocontent.name}");
-            //if ( containers == null )
-            //{
-            //    containers = itemsPanel.Transform.Find("Containers Panel");
-            //}
-            //if (tcontent == null )
-            //{
-            //    tcontent = containers.transform.Find("Scrollview Parent/Containers Scrollview/Content");
-            //}
-            logger.LogWarning($"ItemsPanel_Show {tcontent.name}");
-            my.size_SettingChanged(null, null);
-            // slotView.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
-            //containers.gameObject.GetComponent<HorizontalLayoutGroup>().spacing += 10f;
-
-            
-      
-            foreach (Transform child in ocontent.transform)
-            {
-                logger.LogWarning($"ItemsPanel_Show {child.name}");
-                    //transform.find("Turret/Cannon/spPoint");
-            }
-
-    }
-        */
         // ====================== 하모니 패치 샘플 ===================================
         /*
 
