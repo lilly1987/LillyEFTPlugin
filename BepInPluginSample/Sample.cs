@@ -28,6 +28,7 @@ namespace BepInPluginSample
         static ConfigEntry<bool> SlotOn;
         static ConfigEntry<float> size;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> sizeKey;
+        static ConfigEntry<float> SlotPanelX;
 
         static ConfigEntry<bool> SlotPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SlotPanelKey;
@@ -56,6 +57,8 @@ namespace BepInPluginSample
 
             SlotPanel = Config.Bind("GUI", "SlotPanel", true);
             SlotPanelKey= Config.Bind("GUI", "SlotPanelKey", new KeyboardShortcut(KeyCode.S));// 이건 단축키
+            SlotPanelX = Config.Bind("GUI", "SlotPanelX", 1.05f);
+
 
             LeftPanel = Config.Bind("GUI", "Left Panel", true);
             LeftPanelKey = Config.Bind("GUI", "Left Panel Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
@@ -84,7 +87,8 @@ namespace BepInPluginSample
                 SlotOn.SettingChanged += size_SettingChanged;
                 sizeKey.SettingChanged += size_SettingChanged;
 
-                SlotPanel.SettingChanged += slot_SettingChanged;                
+                SlotPanel.SettingChanged += slot_SettingChanged;
+                SlotPanelX.SettingChanged += slot_SettingChanged;                
 
                 LeftPanel.SettingChanged += LeftPanel_SettingChanged;                
 
@@ -122,8 +126,10 @@ namespace BepInPluginSample
             SlotOn.SettingChanged -= size_SettingChanged;
             sizeKey.SettingChanged -= size_SettingChanged;
             SlotPanel.SettingChanged -= slot_SettingChanged;
+            SlotPanelX.SettingChanged -= slot_SettingChanged;
             LeftPanel.SettingChanged -= LeftPanel_SettingChanged;
             StashPanel.SettingChanged -= StashPanel_SettingChanged;
+
         }
 
 
@@ -163,7 +169,7 @@ namespace BepInPluginSample
             logger.LogInfo($"Wide_SettingChanged {LeftPanel.Value} {rContainersPaneloffsetMin.x} {rLeftPanel.sizeDelta.x}");
             if (LeftPanel.Value)
             {
-                rContainersPanel.offsetMin = new Vector2(rContainersPaneloffsetMin.x - rLeftPanel.rect.size.x, rContainersPaneloffsetMin.y);
+                rContainersPanel.offsetMin = new Vector2(rContainersPaneloffsetMin.x - rLeftPanel.rect.size.x* SlotPanelX.Value, rContainersPaneloffsetMin.y);
             }
             else
             {
@@ -195,10 +201,14 @@ namespace BepInPluginSample
         static Transform tContainersPanel = null;
         static Transform tStashPanel = null;
         static Transform tContent = null;
+        static Transform tScrollviewParent = null;
+        static Transform tContainersScrollview= null;
         static RectTransform rContainersPanel = null;
         static RectTransform rStashPanel = null;
         static RectTransform rLeftPanel = null;
         static RectTransform rGearPanel = null;
+        static RectTransform rScrollviewParent = null;
+        static RectTransform rContainersScrollview= null;
         //static RectTransform lGearPanel = null;
         static Vector2 rContainersPaneloffsetMin ;
         static Vector2 rContainersPaneloffsetMax ;
@@ -217,12 +227,22 @@ namespace BepInPluginSample
             tItemsPanel = inventoryScreen.transform.Find("Items Panel");
             
             tContainersPanel= tItemsPanel.transform.Find("Containers Panel");
-
             rContainersPanel=(RectTransform)tContainersPanel;
             rContainersPaneloffsetMin=rContainersPanel.offsetMin;
             rContainersPaneloffsetMax=rContainersPanel.offsetMax;
-            
-            tContent = tContainersPanel.transform.Find("Scrollview Parent/Containers Scrollview/Content");
+
+            tScrollviewParent = tContainersPanel.transform.Find("Scrollview Parent");
+            rScrollviewParent = (RectTransform)tScrollviewParent;
+
+            tContainersScrollview = tScrollviewParent.transform.Find("Containers Scrollview");
+            rContainersScrollview = (RectTransform)tContainersScrollview;
+            rContainersScrollview.anchorMin = Vector2.zero;
+            Vector2 v = new Vector2();
+            v.x = 10;
+            rContainersScrollview.anchoredPosition = v;
+            rContainersScrollview.offsetMin = v;
+
+            tContent = tContainersScrollview.transform.Find("Content");
 
             tStashPanel = tItemsPanel.transform.Find("Stash Panel");
             rStashPanel = (RectTransform)tStashPanel;
@@ -233,6 +253,8 @@ namespace BepInPluginSample
             tGearPanel = tLeftPanel.transform.Find("Gear Panel");
             rGearPanel = (RectTransform)tGearPanel;
 //            lGearPanel = (RectTransform)tGearPanel;
+            my.LeftPanel_SettingChanged(null, null);
+            my.StashPanel_SettingChanged(null, null);
         }
 
         [HarmonyPatch(typeof(ContainersPanel), "Show")]
