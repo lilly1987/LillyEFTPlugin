@@ -99,21 +99,24 @@ namespace BepInPluginSample
         public void Update()
         {
             #region GUI
-            if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
+            if (ContainersPanelOn)
             {
-                SlotPanel.Value = !SlotPanel.Value;
-            }
-            if (sizeKey.Value.IsUp())// 단축키가 일치할때
-            {
-                SlotOn.Value = !SlotOn.Value;
-            }
-            if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
-            {
-                LeftPanel.Value = !LeftPanel.Value;
-            }
-            if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
-            {
-                StashPanel.Value = !StashPanel.Value;
+                if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
+                {
+                    SlotPanel.Value = !SlotPanel.Value;
+                }
+                if (sizeKey.Value.IsUp())// 단축키가 일치할때
+                {
+                    SlotOn.Value = !SlotOn.Value;
+                }
+                if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
+                {
+                    LeftPanel.Value = !LeftPanel.Value;
+                }
+                if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
+                {
+                    StashPanel.Value = !StashPanel.Value;
+                }
             }
             #endregion
         }
