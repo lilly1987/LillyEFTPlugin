@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using EFT.UI;
+using EFT.UI.DragAndDrop;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -26,18 +27,19 @@ namespace BepInPluginSample
         static bool ContainersPanelShow=false;
 
         static ConfigEntry<bool> SlotOn;
-        static ConfigEntry<float> size;
-        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> sizeKey;
-        static ConfigEntry<float> SlotPanelX;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SlotPanelSizeKey;
+        static ConfigEntry<float> SlotPanelSize;
 
         static ConfigEntry<bool> SlotPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SlotPanelKey;
 
         static ConfigEntry<bool> LeftPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> LeftPanelKey;
+        static ConfigEntry<float> LeftPanelX;
 
         static ConfigEntry<bool> StashPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> StashPanelKey;
+        static ConfigEntry<float> StashPanelX;
         // =========================================================
         #endregion
 
@@ -51,20 +53,20 @@ namespace BepInPluginSample
 
             #region 변수 설정
             // =========================================================
-            size = Config.Bind("GUI", "Containers", 0.75f);
-            SlotOn = Config.Bind("GUI", "ContainersSizeOn", true);
-            sizeKey = Config.Bind("GUI", "ContainersSizeKey", new KeyboardShortcut(KeyCode.W));// 이건 단축키
+            SlotOn = Config.Bind("SlotPanelSize", "On", true);
+            SlotPanelSizeKey = Config.Bind("SlotPanelSize", "Key", new KeyboardShortcut(KeyCode.W));// 이건 단축키
+            SlotPanelSize = Config.Bind("SlotPanelSize", "Size", 0.75f);
 
-            SlotPanel = Config.Bind("GUI", "SlotPanel", true);
-            SlotPanelKey= Config.Bind("GUI", "SlotPanelKey", new KeyboardShortcut(KeyCode.S));// 이건 단축키
-            SlotPanelX = Config.Bind("GUI", "SlotPanelX", 1.05f);
+            SlotPanel = Config.Bind("SlotPanel", "On", true);
+            SlotPanelKey= Config.Bind("SlotPanel", "Key", new KeyboardShortcut(KeyCode.S));// 이건 단축키
 
+            LeftPanel = Config.Bind("LeftPanel", "On", true);
+            LeftPanelKey = Config.Bind("LeftPanel", "Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
+            LeftPanelX = Config.Bind("LeftPanel", "Size", 1.05f);
 
-            LeftPanel = Config.Bind("GUI", "Left Panel", true);
-            LeftPanelKey = Config.Bind("GUI", "Left Panel Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
-
-            StashPanel = Config.Bind("GUI", "StashPanel", true);
-            StashPanelKey = Config.Bind("GUI", "StashPanelKey", new KeyboardShortcut(KeyCode.D));// 이건 단축키
+            StashPanel = Config.Bind("StashPanel", "On", true);
+            StashPanelKey = Config.Bind("StashPanel", "Key", new KeyboardShortcut(KeyCode.D));// 이건 단축키
+            StashPanelX = Config.Bind("StashPanel", "Size", 1.025f);
             // =========================================================
             #endregion
         }
@@ -83,12 +85,12 @@ namespace BepInPluginSample
                 Logger.LogError(e.ToString());
             }
 
-                size.SettingChanged += size_SettingChanged;
+                SlotPanelSize.SettingChanged += size_SettingChanged;
                 SlotOn.SettingChanged += size_SettingChanged;
-                sizeKey.SettingChanged += size_SettingChanged;
+                SlotPanelSizeKey.SettingChanged += size_SettingChanged;
 
                 SlotPanel.SettingChanged += slot_SettingChanged;
-                SlotPanelX.SettingChanged += slot_SettingChanged;                
+                LeftPanelX.SettingChanged += slot_SettingChanged;                
 
                 LeftPanel.SettingChanged += LeftPanel_SettingChanged;                
 
@@ -105,7 +107,7 @@ namespace BepInPluginSample
                 {
                     SlotPanel.Value = !SlotPanel.Value;
                 }
-                if (sizeKey.Value.IsUp())// 단축키가 일치할때
+                if (SlotPanelSizeKey.Value.IsUp())// 단축키가 일치할때
                 {
                     SlotOn.Value = !SlotOn.Value;
                 }
@@ -125,11 +127,11 @@ namespace BepInPluginSample
         {
             Logger.LogWarning("OnDisable");
             harmony?.UnpatchSelf();
-            size.SettingChanged -= size_SettingChanged;
+            SlotPanelSize.SettingChanged -= size_SettingChanged;
             SlotOn.SettingChanged -= size_SettingChanged;
-            sizeKey.SettingChanged -= size_SettingChanged;
+            SlotPanelSizeKey.SettingChanged -= size_SettingChanged;
             SlotPanel.SettingChanged -= slot_SettingChanged;
-            SlotPanelX.SettingChanged -= slot_SettingChanged;
+            LeftPanelX.SettingChanged -= slot_SettingChanged;
             LeftPanel.SettingChanged -= LeftPanel_SettingChanged;
             StashPanel.SettingChanged -= StashPanel_SettingChanged;
 
@@ -140,10 +142,10 @@ namespace BepInPluginSample
         #region size_SettingChanged
         public void size_SettingChanged(object sender, EventArgs e)
         {
-            logger.LogInfo($"size_SettingChanged {size.Value}");
+            logger.LogInfo($"size_SettingChanged {SlotPanelSize.Value}");
             if (SlotOn.Value)
             {
-                tContent.localScale = Vector3.one * size.Value;
+                tContent.localScale = Vector3.one * SlotPanelSize.Value;
             }
             else
                 tContent.localScale = Vector3.one;
@@ -169,14 +171,14 @@ namespace BepInPluginSample
         #region Wide_SettingChanged
         public void LeftPanel_SettingChanged(object sender, EventArgs e)
         {
-            logger.LogInfo($"Wide_SettingChanged {LeftPanel.Value} {rContainersPaneloffsetMin.x} {rLeftPanel.sizeDelta.x}");
+            logger.LogInfo($"Wide_SettingChanged {LeftPanel.Value} {vContainersPaneloffsetMin.x} {rLeftPanel.sizeDelta.x}");
             if (LeftPanel.Value)
             {
-                rContainersPanel.offsetMin = new Vector2(rContainersPaneloffsetMin.x - rLeftPanel.rect.size.x* SlotPanelX.Value, rContainersPaneloffsetMin.y);
+                rContainersPanel.offsetMin = vContainersPanelXl;
             }
             else
             {
-                rContainersPanel.offsetMin = rContainersPaneloffsetMin;
+                rContainersPanel.offsetMin = vContainersPaneloffsetMin;
             }
         }
         #endregion
@@ -184,14 +186,18 @@ namespace BepInPluginSample
         private void StashPanel_SettingChanged(object sender, EventArgs e)
         {
             logger.LogInfo($"StashPanel_SettingChanged {StashPanel.Value}");
-            tStashPanel.gameObject.SetActive(!StashPanel.Value);
+            //tStashPanel.gameObject.SetActive(!StashPanel.Value);
             if (StashPanel.Value)
             {
-                rContainersPanel.offsetMax = new Vector2(rContainersPaneloffsetMax.x + rStashPanel.rect.size.x, rContainersPaneloffsetMax.y);
+                rContainersPanel.offsetMax = vContainersPanelXs;;
+                rStashPanel.offsetMin = vStashPanelXMin;
+                rStashPanel.offsetMax = vStashPanelXMax;
             }
             else
             {
-                rContainersPanel.offsetMax = rContainersPaneloffsetMax;
+                rContainersPanel.offsetMax = vContainersPaneloffsetMax;
+                rStashPanel.offsetMin = vStashPaneloffsetMin;
+                rStashPanel.offsetMax = vStashPaneloffsetMax;
             }
         }
 
@@ -213,8 +219,15 @@ namespace BepInPluginSample
         static RectTransform rScrollviewParent = null;
         static RectTransform rContainersScrollview= null;
         //static RectTransform lGearPanel = null;
-        static Vector2 rContainersPaneloffsetMin ;
-        static Vector2 rContainersPaneloffsetMax ;
+        static Vector2 vContainersPaneloffsetMin ;
+        static Vector2 vContainersPaneloffsetMax ;
+        static Vector2 vContainersPanelXl;
+        static Vector2 vContainersPanelXs;
+        static Vector2 vStashPanel;
+        static Vector2 vStashPaneloffsetMin;
+        static Vector2 vStashPaneloffsetMax;
+        static Vector2 vStashPanelXMin;
+        static Vector2 vStashPanelXMax;
         static Transform TacticalVest = null;
         static Transform Backpack = null;
         static Transform SecuredContainer = null;
@@ -231,8 +244,8 @@ namespace BepInPluginSample
             
             tContainersPanel= tItemsPanel.transform.Find("Containers Panel");
             rContainersPanel=(RectTransform)tContainersPanel;
-            rContainersPaneloffsetMin=rContainersPanel.offsetMin;
-            rContainersPaneloffsetMax=rContainersPanel.offsetMax;
+            vContainersPaneloffsetMin=rContainersPanel.offsetMin;
+            vContainersPaneloffsetMax=rContainersPanel.offsetMax;
 
             tScrollviewParent = tContainersPanel.transform.Find("Scrollview Parent");
             rScrollviewParent = (RectTransform)tScrollviewParent;
@@ -249,13 +262,22 @@ namespace BepInPluginSample
 
             tStashPanel = tItemsPanel.transform.Find("Stash Panel");
             rStashPanel = (RectTransform)tStashPanel;
-
+            vStashPanel = rStashPanel.sizeDelta;
+            vStashPaneloffsetMin = rStashPanel.offsetMin;
+            vStashPaneloffsetMax = rStashPanel.offsetMax;
             tLeftPanel = tItemsPanel.transform.Find("Left Panel");
             rLeftPanel = (RectTransform)tLeftPanel;
 
             tGearPanel = tLeftPanel.transform.Find("Gear Panel");
             rGearPanel = (RectTransform)tGearPanel;
-//            lGearPanel = (RectTransform)tGearPanel;
+            //            lGearPanel = (RectTransform)tGearPanel;
+
+            vContainersPanelXl = new Vector2(vContainersPaneloffsetMin.x - rLeftPanel.rect.size.x * LeftPanelX.Value, vContainersPaneloffsetMin.y);
+
+            vContainersPanelXs = new Vector2(vContainersPaneloffsetMax.x + rStashPanel.rect.size.x * StashPanelX.Value, vContainersPaneloffsetMax.y);
+            vStashPanelXMin = new Vector2(vStashPaneloffsetMin.x + rStashPanel.rect.size.x * StashPanelX.Value, vStashPaneloffsetMin.y);
+            vStashPanelXMax = new Vector2(vStashPaneloffsetMax.x + rStashPanel.rect.size.x * StashPanelX.Value, vStashPaneloffsetMax.y);
+
             my.LeftPanel_SettingChanged(null, null);
             my.StashPanel_SettingChanged(null, null);
         }
@@ -283,6 +305,13 @@ namespace BepInPluginSample
         public static void SimpleStashPanel_Show()
         {
             logger.LogWarning($"SimpleStashPanel_Show ");
+            my.StashPanel_SettingChanged(null, null);
+        }
+        [HarmonyPatch(typeof(ComplexStashPanel), "Show")]
+        [HarmonyPostfix]
+        public static void ComplexStashPanel_Show()
+        {
+            logger.LogWarning($"ComplexStashPanel_Show ");
             my.StashPanel_SettingChanged(null, null);
         }
 
