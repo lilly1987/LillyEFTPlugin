@@ -330,6 +330,7 @@ namespace BepInPluginSample
         public static void ContainersPanel_Close()
         {
             logger.LogWarning($"ContainersPanel_Close");
+            InventoryScreenShow = false;
         }
 
         [HarmonyPatch(typeof(SimpleStashPanel), "Show")]
