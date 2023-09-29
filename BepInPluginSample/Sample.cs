@@ -57,7 +57,7 @@ namespace BepInPluginSample
             // =========================================================
             SlotOn = Config.Bind("Inventory", "Slot Panel Zoom On", true,
                 new ConfigDescription(
-                    "Zoom in or out on the center panel"
+                    "Change center panel scale"
                     //,new AcceptableValueRange<float>(0f, 2f)
                     //, new ConfigurationManagerAttributes { IsAdvanced = true }
                     )
@@ -73,7 +73,7 @@ namespace BepInPluginSample
 
             SlotPanel = Config.Bind("Inventory", "Slot Panel icon On", true,
                 new ConfigDescription(
-                    "Zoom in or out on the center panel"
+                    "Hiding the mounting slots in the center panel"
                     //,new AcceptableValueRange<float>(0f, 2f)
                     //, new ConfigurationManagerAttributes { IsAdvanced = true }
                     )
@@ -82,7 +82,7 @@ namespace BepInPluginSample
 
             LeftPanel = Config.Bind("Inventory", "Left extension On", true,
                 new ConfigDescription(
-                    "Expand the middle panel"
+                    "Extend the center panel to the left"
                     //,new AcceptableValueRange<float>(0f, 2f)
                     //, new ConfigurationManagerAttributes { IsAdvanced = true }
                     )
@@ -98,7 +98,7 @@ namespace BepInPluginSample
 
             StashPanel = Config.Bind("Inventory", "Right extension On", true,
                 new ConfigDescription(
-                    "Expand the middle panel"
+                    "Extend the center panel to the right"
                     //,new AcceptableValueRange<float>(0f, 2f)
                     //, new ConfigurationManagerAttributes { IsAdvanced = true }
                     )
