@@ -12,10 +12,11 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using static EFT.UI.InventoryScreen;
+using KeyboardShortcut = BepInEx.Configuration.KeyboardShortcut;
 
 namespace BepInPluginSample
 {
-    [BepInPlugin("Game.Lilly.Plugin", "Lilly", "1.0")]
+    [BepInPlugin("Game.Lilly.Plugin", "Lilly", "1.3.4")]
     public class Sample : BaseUnityPlugin
     {
         #region 변수
@@ -54,20 +55,62 @@ namespace BepInPluginSample
 
             #region 변수 설정
             // =========================================================
-            SlotOn = Config.Bind("SlotPanelSize", "On", true);
-            SlotPanelSizeKey = Config.Bind("SlotPanelSize", "Key", new KeyboardShortcut(KeyCode.W));// 이건 단축키
-            SlotPanelSize = Config.Bind("SlotPanelSize", "Size", 0.75f);
+            SlotOn = Config.Bind("Inventory", "Slot Panel Zoom On", true,
+                new ConfigDescription(
+                    "Zoom in or out on the center panel"
+                    //,new AcceptableValueRange<float>(0f, 2f)
+                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
+            SlotPanelSizeKey = Config.Bind("Inventory", "Slot Panel Zoom Key", new KeyboardShortcut(KeyCode.W));// 이건 단축키
+            SlotPanelSize = Config.Bind("Inventory", "Slot Panel Zoom scale", 0.75f, 
+                new ConfigDescription(
+                    "Zoom in or out on the center panel"
+                    , new AcceptableValueRange<float>(0f, 2f)
+                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
 
-            SlotPanel = Config.Bind("SlotPanel", "On", true);
-            SlotPanelKey = Config.Bind("SlotPanel", "Key", new KeyboardShortcut(KeyCode.S));// 이건 단축키
+            SlotPanel = Config.Bind("Inventory", "Slot Panel icon On", true,
+                new ConfigDescription(
+                    "Zoom in or out on the center panel"
+                    //,new AcceptableValueRange<float>(0f, 2f)
+                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
+            SlotPanelKey = Config.Bind("Inventory", "Slot Panel icon Key", new KeyboardShortcut(KeyCode.S));// 이건 단축키
 
-            LeftPanel = Config.Bind("LeftPanel", "On", true);
-            LeftPanelKey = Config.Bind("LeftPanel", "Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
-            LeftPanelX = Config.Bind("LeftPanel", "Size", 1.05f);
+            LeftPanel = Config.Bind("Inventory", "Left extension On", true,
+                new ConfigDescription(
+                    "Expand the middle panel"
+                    //,new AcceptableValueRange<float>(0f, 2f)
+                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
+            LeftPanelKey = Config.Bind("Inventory", "Left extension Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
+            LeftPanelX = Config.Bind("Inventory", "Left extension Size", 1.05f,
+                new ConfigDescription(
+                    "For fine tuning."
+                    , new AcceptableValueRange<float>(0f, 2f)
+                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
 
-            StashPanel = Config.Bind("StashPanel", "On", true);
-            StashPanelKey = Config.Bind("StashPanel", "Key", new KeyboardShortcut(KeyCode.D));// 이건 단축키
-            StashPanelX = Config.Bind("StashPanel", "Size", 1.025f);
+            StashPanel = Config.Bind("Inventory", "Right extension On", true,
+                new ConfigDescription(
+                    "Expand the middle panel"
+                    //,new AcceptableValueRange<float>(0f, 2f)
+                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
+            StashPanelKey = Config.Bind("Inventory", "Right extension Key", new KeyboardShortcut(KeyCode.D));// 이건 단축키
+            StashPanelX = Config.Bind("Inventory", "Right extension Size", 1.025f,
+                new ConfigDescription(
+                    "For fine tuning."
+                    , new AcceptableValueRange<float>(0f, 2f)
+                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    )
+                );
             // =========================================================
             #endregion
         }
@@ -304,10 +347,6 @@ namespace BepInPluginSample
         {
             logger.LogWarning($"InventoryScreen_Show ");
             InventoryScreenShow = true;
-            my.size_SettingChanged(null, null);
-            my.slot_SettingChanged(null, null);
-            my.LeftPanel_SettingChanged(null, null);
-            my.StashPanel_SettingChanged(null, null);
         }
 
         [HarmonyPatch(typeof(InventoryScreen), "Close")]
@@ -323,6 +362,10 @@ namespace BepInPluginSample
         public static void ContainersPanel_Show()
         {
             logger.LogWarning($"ContainersPanel_Show ");
+            my.size_SettingChanged(null, null);
+            my.slot_SettingChanged(null, null);
+            my.LeftPanel_SettingChanged(null, null);
+            my.StashPanel_SettingChanged(null, null);
         }
 
         [HarmonyPatch(typeof(ContainersPanel), "Close")]
@@ -391,5 +434,127 @@ namespace BepInPluginSample
         */
         // =========================================================
         #endregion
+    }
+    internal sealed class ConfigurationManagerAttributes
+    {
+        /// <summary>
+        /// Should the setting be shown as a percentage (only use with value range settings).
+        /// </summary>
+        public bool? ShowRangeAsPercent;
+
+        /// <summary>
+        /// Custom setting editor (OnGUI code that replaces the default editor provided by ConfigurationManager).
+        /// See below for a deeper explanation. Using a custom drawer will cause many of the other fields to do nothing.
+        /// </summary>
+        public System.Action<BepInEx.Configuration.ConfigEntryBase> CustomDrawer;
+
+        /// <summary>
+        /// Custom setting editor that allows polling keyboard input with the Input (or UnityInput) class.
+        /// Use either CustomDrawer or CustomHotkeyDrawer, using both at the same time leads to undefined behaviour.
+        /// </summary>
+        public CustomHotkeyDrawerFunc CustomHotkeyDrawer;
+
+        /// <summary>
+        /// Custom setting draw action that allows polling keyboard input with the Input class.
+        /// Note: Make sure to focus on your UI control when you are accepting input so user doesn't type in the search box or in another setting (best to do this on every frame).
+        /// If you don't draw any selectable UI controls You can use `GUIUtility.keyboardControl = -1;` on every frame to make sure that nothing is selected.
+        /// </summary>
+        /// <example>
+        /// CustomHotkeyDrawer = (ConfigEntryBase setting, ref bool isEditing) =>
+        /// {
+        ///     if (isEditing)
+        ///     {
+        ///         // Make sure nothing else is selected since we aren't focusing on a text box with GUI.FocusControl.
+        ///         GUIUtility.keyboardControl = -1;
+        ///                     
+        ///         // Use Input.GetKeyDown and others here, remember to set isEditing to false after you're done!
+        ///         // It's best to check Input.anyKeyDown and set isEditing to false immediately if it's true,
+        ///         // so that the input doesn't have a chance to propagate to the game itself.
+        /// 
+        ///         if (GUILayout.Button("Stop"))
+        ///             isEditing = false;
+        ///     }
+        ///     else
+        ///     {
+        ///         if (GUILayout.Button("Start"))
+        ///             isEditing = true;
+        ///     }
+        /// 
+        ///     // This will only be true when isEditing is true and you hold any key
+        ///     GUILayout.Label("Any key pressed: " + Input.anyKey);
+        /// }
+        /// </example>
+        /// <param name="setting">
+        /// Setting currently being set (if available).
+        /// </param>
+        /// <param name="isCurrentlyAcceptingInput">
+        /// Set this ref parameter to true when you want the current setting drawer to receive Input events.
+        /// The value will persist after being set, use it to see if the current instance is being edited.
+        /// Remember to set it to false after you are done!
+        /// </param>
+        public delegate void CustomHotkeyDrawerFunc(BepInEx.Configuration.ConfigEntryBase setting, ref bool isCurrentlyAcceptingInput);
+
+        /// <summary>
+        /// Show this setting in the settings screen at all? If false, don't show.
+        /// </summary>
+        public bool? Browsable;
+
+        /// <summary>
+        /// Category the setting is under. Null to be directly under the plugin.
+        /// </summary>
+        public string Category;
+
+        /// <summary>
+        /// If set, a "Default" button will be shown next to the setting to allow resetting to default.
+        /// </summary>
+        public object DefaultValue;
+
+        /// <summary>
+        /// Force the "Reset" button to not be displayed, even if a valid DefaultValue is available. 
+        /// </summary>
+        public bool? HideDefaultButton;
+
+        /// <summary>
+        /// Force the setting name to not be displayed. Should only be used with a <see cref="CustomDrawer"/> to get more space.
+        /// Can be used together with <see cref="HideDefaultButton"/> to gain even more space.
+        /// </summary>
+        public bool? HideSettingName;
+
+        /// <summary>
+        /// Optional description shown when hovering over the setting.
+        /// Not recommended, provide the description when creating the setting instead.
+        /// </summary>
+        public string Description;
+
+        /// <summary>
+        /// Name of the setting.
+        /// </summary>
+        public string DispName;
+
+        /// <summary>
+        /// Order of the setting on the settings list relative to other settings in a category.
+        /// 0 by default, higher number is higher on the list.
+        /// </summary>
+        public int? Order;
+
+        /// <summary>
+        /// Only show the value, don't allow editing it.
+        /// </summary>
+        public bool? ReadOnly;
+
+        /// <summary>
+        /// If true, don't show the setting by default. User has to turn on showing advanced settings or search for it.
+        /// </summary>
+        public bool? IsAdvanced;
+
+        /// <summary>
+        /// Custom converter from setting type to string for the built-in editor textboxes.
+        /// </summary>
+        public System.Func<object, string> ObjToStr;
+
+        /// <summary>
+        /// Custom converter from string to setting type for the built-in editor textboxes.
+        /// </summary>
+        public System.Func<string, object> StrToObj;
     }
 }
