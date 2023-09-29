@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.DragAndDrop;
 using HarmonyLib;
@@ -252,6 +253,7 @@ namespace BepInPluginSample
 
         #region Harmony
 
+        #region Panel
         static InventoryScreen inventoryScreen = null;
         static GameObject oinventoryScreen;
         static Transform tItemsPanel = null;
@@ -408,7 +410,73 @@ namespace BepInPluginSample
             
         }
 
+        #endregion
 
+        /*
+        /// <summary>
+        /// 다음에 GridItemView_NewGridItemView 를 호출
+        /// </summary>
+        /// <param name="item"></param>
+        [HarmonyPatch(typeof(ItemView), "NewItemView")]
+        [HarmonyPostfix]
+        public static void ItemView_NewItemView(Item item)
+        {
+            logger.LogWarning($"ItemView_NewItemView ; {item.Name} ");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        // protected GridItemView NewGridItemView(Item item, GClass2710 sourceContext, ItemRotation rotation, TraderControllerClass itemController, IItemOwner itemOwner, [CanBeNull] FilterPanel filterPanel, [CanBeNull] GInterface324 container, [CanBeNull] ItemUiContext itemUiContext, InsuranceCompanyClass insurance, bool isSearched = true);
+        [HarmonyPatch(typeof(GridItemView), "NewGridItemView")]
+        [HarmonyPostfix]
+        public static void GridItemView_NewGridItemView()
+        {
+            logger.LogWarning($"GridItemView_NewGridItemView");
+
+        }
+
+        // public void OnRefreshItem(GEventArgs22 eventArgs);
+        [HarmonyPatch(typeof(GridItemView), "OnRefreshItem")]
+        [HarmonyPostfix]
+        public static void GridItemView_OnRefreshItem()
+        {
+            logger.LogWarning($"GridItemView_OnRefreshItem");
+        }
+        
+        // public void OnRefreshItem(GEventArgs22 eventArgs);
+        [HarmonyPatch(typeof(GridItemView), "OnItemAdded")]
+        [HarmonyPostfix]
+        public static void GridItemView_OnItemAdded()
+        {
+            logger.LogWarning($"GridItemView_OnItemAdded");
+        }
+        
+        // public void OnRefreshItem(GEventArgs22 eventArgs);
+        [HarmonyPatch(typeof(GridItemView), "OnItemRemoved")]
+        [HarmonyPostfix]
+        public static void GridItemView_OnItemRemoved()
+        {
+            logger.LogWarning($"GridItemView_OnItemRemoved");
+        }
+
+        /// <summary>
+        /// 연속으로 두번 호출
+        /// [Warning:     Lilly] TagComponent_Set ; adf , 0 , True
+        /// [Warning: Lilly] TagComponent_Set ; adf , 0 , False
+        /// 이후 모든 아이템 GridItemView_OnRefreshItem 호출
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="color"></param>
+        /// <param name="simulate"></param>
+        [HarmonyPatch(typeof(TagComponent), "Set")]
+        [HarmonyPostfix]
+        public static void TagComponent_Set(string name, int color, bool simulate)
+        {
+            logger.LogWarning($"TagComponent_Set ; {name} , {color} , {simulate} ");
+        }
+
+        */
 
         // ====================== 하모니 패치 샘플 ===================================
         /*
