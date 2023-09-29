@@ -10,21 +10,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static EFT.UI.InventoryScreen;
 using KeyboardShortcut = BepInEx.Configuration.KeyboardShortcut;
 
-namespace BepInPluginSample
+namespace LillyEFTPlugin
 {
     [BepInPlugin("Game.Lilly.Plugin", "Lilly", "1.3.4")]
-    public class Sample : BaseUnityPlugin
+    public class Main : BaseUnityPlugin
     {
         #region 변수
         // =========================================================
-        static Sample my;
+        static Main my;
         static Harmony harmony;
-        static ManualLogSource logger;
+        internal static ManualLogSource logger;
 
 
         static bool InventoryScreenShow = false;
@@ -43,6 +44,9 @@ namespace BepInPluginSample
         static ConfigEntry<bool> StashPanel;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> StashPanelKey;
         static ConfigEntry<float> StashPanelX;
+
+
+
         // =========================================================
         #endregion
 
@@ -59,59 +63,88 @@ namespace BepInPluginSample
             SlotOn = Config.Bind("Inventory", "Slot Panel Zoom On", true,
                 new ConfigDescription(
                     "Change center panel scale"
-                    //,new AcceptableValueRange<float>(0f, 2f)
-                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , null
+                    , new ConfigurationManagerAttributes { Order=603 }
                     )
                 );
-            SlotPanelSizeKey = Config.Bind("Inventory", "Slot Panel Zoom Key", new KeyboardShortcut(KeyCode.W));// 이건 단축키
+            SlotPanelSizeKey = Config.Bind("Inventory", "Slot Panel Zoom Key", new KeyboardShortcut(KeyCode.W)
+                , new ConfigDescription(
+                    "Change center panel scale"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 602 }
+                    )
+                );// 이건 단축키
             SlotPanelSize = Config.Bind("Inventory", "Slot Panel Zoom scale", 0.75f, 
                 new ConfigDescription(
                     "Zoom in or out on the center panel"
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = 601 }
                     )
                 );
 
             SlotPanel = Config.Bind("Inventory", "Slot Panel icon On", true,
                 new ConfigDescription(
                     "Hiding the mounting slots in the center panel"
-                    //,new AcceptableValueRange<float>(0f, 2f)
-                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 503 }
                     )
                 );
-            SlotPanelKey = Config.Bind("Inventory", "Slot Panel icon Key", new KeyboardShortcut(KeyCode.S));// 이건 단축키
+            SlotPanelKey = Config.Bind("Inventory", "Slot Panel icon Key", new KeyboardShortcut(KeyCode.S),
+                new ConfigDescription(
+                    "Hiding the mounting slots in the center panel"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 502 }
+                    )
+                );// 이건 단축키
 
+            //
             LeftPanel = Config.Bind("Inventory", "Left extension On", true,
                 new ConfigDescription(
                     "Extend the center panel to the left"
-                    //,new AcceptableValueRange<float>(0f, 2f)
-                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 403 }
                     )
                 );
-            LeftPanelKey = Config.Bind("Inventory", "Left extension Key", new KeyboardShortcut(KeyCode.A));// 이건 단축키
+            LeftPanelKey = Config.Bind("Inventory", "Left extension Key", new KeyboardShortcut(KeyCode.A),
+                new ConfigDescription(
+                    "Extend the center panel to the left"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 402 }
+                    )
+                );// 이건 단축키
             LeftPanelX = Config.Bind("Inventory", "Left extension Size", 1.05f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = 401 }
                     )
                 );
 
+            //
             StashPanel = Config.Bind("Inventory", "Right extension On", true,
                 new ConfigDescription(
                     "Extend the center panel to the right"
-                    //,new AcceptableValueRange<float>(0f, 2f)
-                    //, new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 303 }
                     )
                 );
-            StashPanelKey = Config.Bind("Inventory", "Right extension Key", new KeyboardShortcut(KeyCode.D));// 이건 단축키
+            StashPanelKey = Config.Bind("Inventory", "Right extension Key", new KeyboardShortcut(KeyCode.D),
+                new ConfigDescription(
+                    "Extend the center panel to the right"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = 302 }
+                    )
+                );// 이건 단축키
             StashPanelX = Config.Bind("Inventory", "Right extension Size", 1.025f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { IsAdvanced = true }
+                    , new ConfigurationManagerAttributes { Order = 301 , IsAdvanced = true }
                     )
                 );
+
+            //
+//            TagPanelFix.Awake(Config, logger);
             // =========================================================
             #endregion
         }
@@ -122,11 +155,11 @@ namespace BepInPluginSample
             // 하모니 패치
             try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
             {
-                harmony = Harmony.CreateAndPatchAll(typeof(Sample));
+                harmony = Harmony.CreateAndPatchAll(typeof(Main));
             }
             catch (Exception e)
             {
-                Logger.LogError("harmony");
+                Logger.LogError("harmony Main");
                 Logger.LogError(e.ToString());
             }
 
@@ -141,7 +174,11 @@ namespace BepInPluginSample
 
             StashPanel.SettingChanged += StashPanel_SettingChanged;
 
+//            TagPanelFix.OnEnable();
+
         }
+
+
 
         public void Update()
         {
@@ -283,6 +320,7 @@ namespace BepInPluginSample
         static Transform TacticalVest = null;
         static Transform Backpack = null;
         static Transform SecuredContainer = null;
+        
 
         [HarmonyPatch(typeof(InventoryScreen), "Awake")]
         [HarmonyPostfix]
@@ -411,31 +449,18 @@ namespace BepInPluginSample
         }
 
         #endregion
-
         /*
-        /// <summary>
-        /// 다음에 GridItemView_NewGridItemView 를 호출
-        /// </summary>
-        /// <param name="item"></param>
-        [HarmonyPatch(typeof(ItemView), "NewItemView")]
+        [HarmonyPatch(typeof(ItemViewStats), "NewItemView")]
         [HarmonyPostfix]
         public static void ItemView_NewItemView(Item item)
         {
             logger.LogWarning($"ItemView_NewItemView ; {item.Name} ");
         }
+        */
 
-        /// <summary>
-        /// 
-        /// </summary>
-        // protected GridItemView NewGridItemView(Item item, GClass2710 sourceContext, ItemRotation rotation, TraderControllerClass itemController, IItemOwner itemOwner, [CanBeNull] FilterPanel filterPanel, [CanBeNull] GInterface324 container, [CanBeNull] ItemUiContext itemUiContext, InsuranceCompanyClass insurance, bool isSearched = true);
-        [HarmonyPatch(typeof(GridItemView), "NewGridItemView")]
-        [HarmonyPostfix]
-        public static void GridItemView_NewGridItemView()
-        {
-            logger.LogWarning($"GridItemView_NewGridItemView");
 
-        }
 
+        /*
         // public void OnRefreshItem(GEventArgs22 eventArgs);
         [HarmonyPatch(typeof(GridItemView), "OnRefreshItem")]
         [HarmonyPostfix]
