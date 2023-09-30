@@ -15,7 +15,7 @@ namespace LillyEFTPlugin
 {
     internal class TagPanelFix
     {
-        static Harmony harmonyTagPanelFix = null;
+        static Harmony harmony = null;
 
         static ConfigEntry<bool> TagPanelFixOn;
         static ConfigEntry<float> TagPanelFiY;
@@ -32,16 +32,13 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = 203 }
                 )
             );
-            TagPanelFiY = Config.Bind("Inventory", "TagPanelFiY", -16f,
+            TagPanelFiY = Config.Bind("Inventory", "TagPanelFiY", -12f,
                 new ConfigDescription(
                     "TagPanelFix"
                     , null
                     , new ConfigurationManagerAttributes { Order = 202 }
                 )
             );
-        }
-        internal static void OnEnable()
-        {
             TagPanelFixOn.SettingChanged += TagPanelFix_SettingChanged;
             TagPanelFix_SettingChanged(null, null);
         }
@@ -51,11 +48,11 @@ namespace LillyEFTPlugin
             Logger.LogWarning($"TagPanelFix_SettingChanged {TagPanelFixOn.Value}");
             if (TagPanelFixOn.Value)
             {
-                if (harmonyTagPanelFix == null)
+                if (harmony == null)
                     TagPanelFiV=new Vector3(0, TagPanelFiY.Value);
                     try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
                     {
-                        harmonyTagPanelFix = Harmony.CreateAndPatchAll(typeof(TagPanelFix));
+                        harmony = Harmony.CreateAndPatchAll(typeof(TagPanelFix));
                     }
                     catch (Exception ex)
                     {
@@ -65,7 +62,7 @@ namespace LillyEFTPlugin
             }
             else
             {
-                harmonyTagPanelFix?.UnpatchSelf();
+                harmony?.UnpatchSelf();
             }
         }
 
@@ -86,13 +83,13 @@ namespace LillyEFTPlugin
             Logger.LogWarning($"ItemView_NewItemView ; {item.Name} ");
         }
         /*
-        */
         [HarmonyPatch(typeof(ItemViewStats), "SetStaticInfo")]
         [HarmonyPostfix]
         public static void ItemViewStats_SetStaticInfo(Item item, bool examined)
         {
             Logger.LogWarning($"ItemViewStats_SetStaticInfo ; {item.Name} ; {examined} ");
         }
+        */
 
         /// <summary>
         /// 
@@ -117,7 +114,6 @@ namespace LillyEFTPlugin
                 //___TagName.
             }
         }
-
 
     }
 }

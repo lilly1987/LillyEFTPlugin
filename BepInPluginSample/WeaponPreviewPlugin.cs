@@ -88,7 +88,6 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
                     )
                 );
-            rk.SettingChanged += rk_SettingChanged;
 
             step = Config.Bind("WeaponPreview", "scale pos step", 0.01f,
                 new ConfigDescription(
@@ -99,7 +98,7 @@ namespace LillyEFTPlugin
                 );
         }
 
-        private static void rk_SettingChanged(object sender, EventArgs e)
+        private static void rk_SettingChanged()
         {
             if (isOn && Rotator)
             {
@@ -139,11 +138,15 @@ namespace LillyEFTPlugin
                 }
                 if (pr.Value.IsPressed())
                 {
-                    pos.Value += step.Value;
+                    pos.Value -= step.Value;
                 }
                 if (pl.Value.IsPressed())
                 {
-                    pos.Value -= step.Value;
+                    pos.Value += step.Value;
+                }
+                if (rk.Value.IsUp())
+                {
+                    rk_SettingChanged();
                 }
             }
         }

@@ -144,7 +144,7 @@ namespace LillyEFTPlugin
                 );
 
             //
-            //            TagPanelFix.Awake(Config, logger);
+            TagPanelFix.Awake(Config, logger);
             WeaponPreviewPlugin.Awake(Config, logger);
             // =========================================================
             #endregion
@@ -210,6 +210,7 @@ namespace LillyEFTPlugin
         {
             Logger.LogWarning("OnDisable");
             WeaponPreviewPlugin.OnDisable();
+
 
             harmony?.UnpatchSelf();
             SlotPanelSize.SettingChanged -= size_SettingChanged;
@@ -410,7 +411,7 @@ namespace LillyEFTPlugin
             my.LeftPanel_SettingChanged(null, null);
             my.StashPanel_SettingChanged(null, null);
         }
-
+        /*
         [HarmonyPatch(typeof(ContainersPanel), "Close")]
         [HarmonyPostfix]
         public static void ContainersPanel_Close()
@@ -450,7 +451,7 @@ namespace LillyEFTPlugin
             logger.LogWarning($"ComplexStashPanel_Close");
             
         }
-
+        */
         #endregion
         /*
         [HarmonyPatch(typeof(ItemViewStats), "NewItemView")]
