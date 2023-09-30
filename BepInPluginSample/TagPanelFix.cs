@@ -72,6 +72,7 @@ namespace LillyEFTPlugin
         //  ItemViewStats
         //      TextMeshProUGUI
 
+        /*
         /// <summary>
         /// 다음에 GridItemView_NewGridItemView 를 호출
         /// </summary>
@@ -82,7 +83,6 @@ namespace LillyEFTPlugin
         {
             Logger.LogWarning($"ItemView_NewItemView ; {item.Name} ");
         }
-        /*
         [HarmonyPatch(typeof(ItemViewStats), "SetStaticInfo")]
         [HarmonyPostfix]
         public static void ItemViewStats_SetStaticInfo(Item item, bool examined)
@@ -99,7 +99,7 @@ namespace LillyEFTPlugin
         [HarmonyPostfix]
         public static void GridItemView_NewGridItemView(GridItemView __instance, TextMeshProUGUI ___TagName)
         {
-            Logger.LogWarning($"GridItemView_NewGridItemView ; {__instance.Item.Name} ; {__instance.Item.ShortName}");
+            //Logger.LogWarning($"GridItemView_NewGridItemView ; {__instance.Item.Name} ; {__instance.Item.ShortName}");
             var tagPanel = __instance.transform.Find("TagPanel");
             if (tagPanel && tagPanel.gameObject.activeSelf)
             {
