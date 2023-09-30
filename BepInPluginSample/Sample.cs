@@ -45,7 +45,7 @@ namespace LillyEFTPlugin
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> StashPanelKey;
         static ConfigEntry<float> StashPanelX;
 
-
+        internal static int ordercount=int.MaxValue;
 
         // =========================================================
         #endregion
@@ -64,21 +64,21 @@ namespace LillyEFTPlugin
                 new ConfigDescription(
                     "Change center panel scale"
                     , null
-                    , new ConfigurationManagerAttributes { Order=603 }
+                    , new ConfigurationManagerAttributes { Order= ordercount-- }
                     )
                 );
             SlotPanelSizeKey = Config.Bind("Inventory", "Slot Panel Zoom Key", new KeyboardShortcut(KeyCode.W)
                 , new ConfigDescription(
                     "Change center panel scale"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 602 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );// 이건 단축키
             SlotPanelSize = Config.Bind("Inventory", "Slot Panel Zoom scale", 0.75f, 
                 new ConfigDescription(
                     "Zoom in or out on the center panel"
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = 601 }
+                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = ordercount-- }
                     )
                 );
 
@@ -86,14 +86,14 @@ namespace LillyEFTPlugin
                 new ConfigDescription(
                     "Hiding the mounting slots in the center panel"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 503 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );
             SlotPanelKey = Config.Bind("Inventory", "Slot Panel icon Key", new KeyboardShortcut(KeyCode.S),
                 new ConfigDescription(
                     "Hiding the mounting slots in the center panel"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 502 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );// 이건 단축키
 
@@ -102,21 +102,21 @@ namespace LillyEFTPlugin
                 new ConfigDescription(
                     "Extend the center panel to the left"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 403 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );
             LeftPanelKey = Config.Bind("Inventory", "Left extension Key", new KeyboardShortcut(KeyCode.A),
                 new ConfigDescription(
                     "Extend the center panel to the left"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 402 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );// 이건 단축키
             LeftPanelX = Config.Bind("Inventory", "Left extension Size", 1.05f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = 401 }
+                    , new ConfigurationManagerAttributes { IsAdvanced = true , Order = Main.ordercount-- }
                     )
                 );
 
@@ -125,26 +125,27 @@ namespace LillyEFTPlugin
                 new ConfigDescription(
                     "Extend the center panel to the right"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 303 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );
             StashPanelKey = Config.Bind("Inventory", "Right extension Key", new KeyboardShortcut(KeyCode.D),
                 new ConfigDescription(
                     "Extend the center panel to the right"
                     , null
-                    , new ConfigurationManagerAttributes { Order = 302 }
+                    , new ConfigurationManagerAttributes { Order = ordercount-- }
                     )
                 );// 이건 단축키
             StashPanelX = Config.Bind("Inventory", "Right extension Size", 1.025f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 2f)
-                    , new ConfigurationManagerAttributes { Order = 301 , IsAdvanced = true }
+                    , new ConfigurationManagerAttributes { Order = ordercount--, IsAdvanced = true }
                     )
                 );
 
             //
-//            TagPanelFix.Awake(Config, logger);
+            //            TagPanelFix.Awake(Config, logger);
+            WeaponPreviewPlugin.Awake(Config, logger);
             // =========================================================
             #endregion
         }
@@ -159,7 +160,6 @@ namespace LillyEFTPlugin
             }
             catch (Exception e)
             {
-                Logger.LogError("harmony Main");
                 Logger.LogError(e.ToString());
             }
 
@@ -174,8 +174,7 @@ namespace LillyEFTPlugin
 
             StashPanel.SettingChanged += StashPanel_SettingChanged;
 
-//            TagPanelFix.OnEnable();
-
+            WeaponPreviewPlugin.OnEnable();
         }
 
 
@@ -203,11 +202,15 @@ namespace LillyEFTPlugin
                 }
             }
             #endregion
+
+            WeaponPreviewPlugin.Update();
         }
 
         public void OnDisable()
         {
             Logger.LogWarning("OnDisable");
+            WeaponPreviewPlugin.OnDisable();
+
             harmony?.UnpatchSelf();
             SlotPanelSize.SettingChanged -= size_SettingChanged;
             SlotOn.SettingChanged -= size_SettingChanged;
