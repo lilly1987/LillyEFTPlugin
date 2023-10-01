@@ -123,7 +123,7 @@ namespace LillyEFTPlugin
                     vTransform.x += step.Value;
                     nTransform.localPosition = vTransform;
                 }
-                else if (Xk.Value.IsPressed())// 단축키가 일치할때
+                else if (Xk.Value.IsUp())// 단축키가 일치할때
                 {
                     if (nTransform.localScale.x == 1)
                     {
