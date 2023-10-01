@@ -147,6 +147,7 @@ namespace LillyEFTPlugin
             //
             TagPanelFix.Awake(Config, logger);
             WeaponPreviewPlugin.Awake(Config, logger);
+            GridWindowPlugin.Awake(Config, logger);
             // =========================================================
             #endregion
         }
@@ -176,6 +177,7 @@ namespace LillyEFTPlugin
             StashPanel.SettingChanged += StashPanel_SettingChanged;
 
             WeaponPreviewPlugin.OnEnable();
+            GridWindowPlugin.OnEnable();
         }
 
 
@@ -183,21 +185,21 @@ namespace LillyEFTPlugin
         public void Update()
         {
             #region GUI
-            if (InventoryScreenShow)
+            if (InventoryScreenShow && GridWindowPlugin.nTransform == null)
             {
                 if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     SlotPanel.Value = !SlotPanel.Value;
                 }
-                if (SlotPanelSizeKey.Value.IsUp())// 단축키가 일치할때
+                else if (SlotPanelSizeKey.Value.IsUp())// 단축키가 일치할때
                 {
                     SlotOn.Value = !SlotOn.Value;
                 }
-                if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
+                else if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     LeftPanel.Value = !LeftPanel.Value;
                 }
-                if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
+                else if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     StashPanel.Value = !StashPanel.Value;
                 }
@@ -205,6 +207,7 @@ namespace LillyEFTPlugin
             #endregion
 
             WeaponPreviewPlugin.Update();
+            GridWindowPlugin.Update();
         }
 
         public void OnDisable()
