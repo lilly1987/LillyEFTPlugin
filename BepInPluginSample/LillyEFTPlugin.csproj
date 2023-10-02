@@ -69,6 +69,24 @@
       <HintPath>..\..\..\BepInEx\plugins\spt\ConfigurationManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Crc32.NET">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\Crc32.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="EFTApi">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\EFTApi.dll</HintPath>
+    </Reference>
+    <Reference Include="EFTConfiguration">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\EFTConfiguration.dll</HintPath>
+    </Reference>
+    <Reference Include="EFTReflection">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\EFTReflection.dll</HintPath>
+    </Reference>
+    <Reference Include="EFTUtils">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\EFTUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack">
+      <HintPath>..\..\..\BepInEx\plugins\kmyuhkyuk-EFTApi\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Cecil, Version=0.11.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.11.4\lib\net40\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
@@ -124,7 +142,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigurationManagerAttributes.cs" />
     <Compile Include="GridWindowPlugin.cs" />
+    <Compile Include="InventoryPlugin.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TagPanelFix.cs" />

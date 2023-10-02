@@ -32,10 +32,21 @@ namespace LillyEFTPlugin
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Xk;
         static ConfigEntry<float> scale;
 
-        internal static void Awake(ConfigFile config, ManualLogSource logger)
+        static LinkedList<Transform> list = new LinkedList<Transform>();
+        internal static Transform nTransform = null;
+        internal static Vector3 vTransform = Vector3.zero;
+
+        internal static void init(ConfigFile config, ManualLogSource logger)
         {
             Logger = logger;
             Config = config;
+            Main.awake += Awake;
+            Main.update += Update;
+            Main.onEnable += OnEnable;
+            //Main.onDisable += OnDisable;
+        }
+        internal static void Awake()
+        {
             isOn = Config.Bind("GridWindow", "is on",false
                 , new ConfigDescription(
                     "GridWindow on"
@@ -138,7 +149,7 @@ namespace LillyEFTPlugin
         internal static void OnEnable()
         {
             Logger.LogWarning($"GridWindow OnEnable");
-            IsOn_SettingChanged(null,null);
+            //IsOn_SettingChanged(null,null);
         }
 
         internal static void Update()
@@ -193,9 +204,7 @@ namespace LillyEFTPlugin
 
 
         // GridWindow.OnPointerClick(PointerEventData)
-        static LinkedList<Transform> list = new LinkedList<Transform>();
-        internal static Transform nTransform = null;
-        internal static Vector3 vTransform = Vector3.zero;
+
         //internal static Vector3 vTransformScale = Vector3.one;
 
         /// fail

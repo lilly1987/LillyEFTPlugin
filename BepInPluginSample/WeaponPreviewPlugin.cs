@@ -13,8 +13,11 @@ namespace LillyEFTPlugin
 {
     internal class WeaponPreviewPlugin
     {
-        internal static ManualLogSource Logger;
+        #region 변수
+        static ConfigFile Config;
+        internal static ManualLogSource logger;
         static Harmony harmony;
+        static bool pluginOn = false;
 
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> sk;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> bk;
@@ -31,10 +34,33 @@ namespace LillyEFTPlugin
         static Vector3 vpos = new Vector3();
         static Vector3 vsize;
 
-        internal static void Awake(ConfigFile Config, ManualLogSource logger)
+        static Transform Rotator;
+        #endregion
+
+        internal static void init(ConfigFile Config, ManualLogSource logger)
         {
-            Logger = logger;
-            Logger.LogWarning("Awake WeaponPreviewPlugin");
+            WeaponPreviewPlugin.Config = Config;
+            WeaponPreviewPlugin.logger = logger;
+            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
+            {
+                harmony = Harmony.CreateAndPatchAll(typeof(WeaponPreviewPlugin));
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+                return;
+            }
+            pluginOn = true;
+            Main.awake += Awake;
+            //Main.onEnable += OnEnable;
+            Main.onDisable += OnDisable;
+            Main.update += Update;
+        }
+
+        internal static void Awake()
+        {
+            logger.LogWarning("Awake WeaponPreviewPlugin");
+
             sk = Config.Bind("WeaponPreview", "scale - Key", new KeyboardShortcut(KeyCode.S),
                 new ConfigDescription(
                     ""
@@ -155,7 +181,7 @@ namespace LillyEFTPlugin
             }
         }
 
-        static Transform Rotator;
+        
 
         //  EditBuildScreen
         //      WeaponPreview
@@ -206,7 +232,7 @@ namespace LillyEFTPlugin
         [HarmonyPostfix]
         public static void WeaponPreview_Init(WeaponPreview __instance)
         {
-            Logger.LogWarning($"WeaponPreview_Init");
+            logger.LogWarning($"WeaponPreview_Init");
             Rotator = __instance.Rotator;
             isOn = true;
             Size_SettingChanged(null, null);
@@ -226,7 +252,7 @@ namespace LillyEFTPlugin
         public static void WeaponPreview_Hide()
         {
             isOn = false;
-            Logger.LogWarning($"WeaponPreview_Hide");
+            logger.LogWarning($"WeaponPreview_Hide");
 
         }
         /*
@@ -237,19 +263,12 @@ namespace LillyEFTPlugin
             Logger.LogWarning($"WeaponPreview_OnDestroy");
 
         }
-        */
         internal static void OnEnable()
         {
-            Logger.LogWarning("OnEnable WeaponPreviewPlugin");
-            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
-            {
-                harmony = Harmony.CreateAndPatchAll(typeof(WeaponPreviewPlugin));
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e.ToString());
-            }
+            logger.LogWarning("OnEnable WeaponPreviewPlugin");
+
         }
+        */
 
         internal static void OnDisable()
         {

@@ -16,15 +16,24 @@ namespace LillyEFTPlugin
     internal class TagPanelFix
     {
         static Harmony harmony = null;
+        static ConfigFile Config;
+        static ManualLogSource Logger;
 
         static ConfigEntry<bool> TagPanelFixOn;
         static ConfigEntry<float> TagPanelFiY;
         static Vector3 TagPanelFiV=new Vector3();
-        static ManualLogSource Logger;
 
-        internal static void Awake(ConfigFile Config , ManualLogSource logger)
+        internal static void init(ConfigFile Config, ManualLogSource logger)
         {
             Logger = logger;
+            TagPanelFix.Config = Config;
+            Main.awake += Awake;
+            //Main.update += Update;
+            //Main.onEnable += OnEnable;
+            //Main.onDisable += OnDisable;
+        }
+        internal static void Awake()
+        {
             TagPanelFixOn = Config.Bind("Inventory", "TagPanelFixOn", true,
                 new ConfigDescription(
                     "TagPanelFix"
