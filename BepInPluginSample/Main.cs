@@ -19,6 +19,7 @@ using KeyboardShortcut = BepInEx.Configuration.KeyboardShortcut;
 namespace LillyEFTPlugin
 {
     [BepInPlugin("Game.Lilly.Plugin", "Lilly", "1.3.4")]
+    [BepInDependency("com.bepinex.plugin.somedependency", BepInDependency.DependencyFlags.SoftDependency)]
     public class Main : BaseUnityPlugin
     {
         #region 변수

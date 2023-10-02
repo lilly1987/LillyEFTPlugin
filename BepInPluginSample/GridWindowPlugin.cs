@@ -15,14 +15,18 @@ namespace LillyEFTPlugin
 {
     internal class GridWindowPlugin
     {
-        static Harmony harmony;
+        static Harmony harmony=null;
         internal static ManualLogSource Logger;
         static ConfigFile Config;
+
+        static ConfigEntry<bool> isOn;
 
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Ak;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Sk;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Wk;
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Dk;
+        static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> SPk;
+        static ConfigEntry<float> head;
         static ConfigEntry<float> step;
 
         static ConfigEntry<BepInEx.Configuration.KeyboardShortcut> Xk;
@@ -32,6 +36,14 @@ namespace LillyEFTPlugin
         {
             Logger = logger;
             Config = config;
+            isOn = Config.Bind("GridWindow", "is on",false
+                , new ConfigDescription(
+                    "GridWindow on"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
+                    )
+                );
+            isOn.SettingChanged += IsOn_SettingChanged;
             Wk = Config.Bind("GridWindow", "y+ Key", new KeyboardShortcut(KeyCode.W)
                 , new ConfigDescription(
                     "move y+"
@@ -60,12 +72,25 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
                     )
                 );
-
-            step = Config.Bind("GridWindow", "step", 10f,
+            step = Config.Bind("GridWindow", "step", 50f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 1000f)
                     , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
+                    )
+                );
+            SPk = Config.Bind("GridWindow", "head Key", new KeyboardShortcut(KeyCode.Space)
+                , new ConfigDescription(
+                    "move x+"
+                    , null
+                    , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
+                    )
+                );
+            head = Config.Bind("GridWindow", "head y fix", 600f,
+                new ConfigDescription(
+                    "For fine tuning."
+                    , new AcceptableValueRange<float>(0f, 2000f)
+                    , new ConfigurationManagerAttributes { Order = Main.ordercount--,IsAdvanced=true }
                     )
                 );
 
@@ -85,21 +110,40 @@ namespace LillyEFTPlugin
                 );
         }
 
+        private static void IsOn_SettingChanged(object sender, EventArgs ev)
+        {
+            Logger.LogWarning($"GridWindow IsOn_SettingChanged");
+            if (isOn.Value)
+            {
+                if (harmony==null)
+                {
+                    try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
+                    {
+                        harmony = Harmony.CreateAndPatchAll(typeof(GridWindowPlugin));
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogError(e.ToString());
+                    }
+                }
+            }
+            else
+            {
+                harmony?.UnpatchSelf();
+                nTransform = null;
+                vTransform = Vector3.zero;
+            }
+        }
+
         internal static void OnEnable()
         {
-            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
-            {
-                harmony = Harmony.CreateAndPatchAll(typeof(GridWindowPlugin));
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e.ToString());
-            }
+            Logger.LogWarning($"GridWindow OnEnable");
+            IsOn_SettingChanged(null,null);
         }
 
         internal static void Update()
         {
-            if (nTransform)
+            if (nTransform && isOn.Value)
             {
                 if (Wk.Value.IsPressed())// 단축키가 일치할때
                 {
@@ -121,6 +165,12 @@ namespace LillyEFTPlugin
                 else if (Dk.Value.IsPressed())// 단축키가 일치할때
                 {
                     vTransform.x += step.Value;
+                    nTransform.localPosition = vTransform;
+                }
+                else if (SPk.Value.IsUp())// 단축키가 일치할때
+                {
+                    
+                    vTransform.y = - nTransform.RectTransform().sizeDelta.y/2 + head.Value;
                     nTransform.localPosition = vTransform;
                 }
                 else if (Xk.Value.IsUp())// 단축키가 일치할때
