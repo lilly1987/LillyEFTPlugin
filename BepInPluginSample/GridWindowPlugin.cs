@@ -116,16 +116,16 @@ namespace LillyEFTPlugin
             if (isOn.Value)
             {
                 if (harmony==null)
-                {
-                    try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
-                    {
-                        harmony = Harmony.CreateAndPatchAll(typeof(GridWindowPlugin));
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogError(e.ToString());
-                    }
-                }
+        {
+            try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
+            {
+                harmony = Harmony.CreateAndPatchAll(typeof(GridWindowPlugin));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.ToString());
+            }
+        }
             }
             else
             {
