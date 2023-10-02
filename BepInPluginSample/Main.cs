@@ -143,9 +143,11 @@ namespace LillyEFTPlugin
                     )
                 );
 
+            vContainersScrollview.x = 10;
             //
             TagPanelFix.Awake(Config, logger);
             WeaponPreviewPlugin.Awake(Config, logger);
+            GridWindowPlugin.Awake(Config, logger);
             // =========================================================
             #endregion
         }
@@ -175,6 +177,7 @@ namespace LillyEFTPlugin
             StashPanel.SettingChanged += StashPanel_SettingChanged;
 
             WeaponPreviewPlugin.OnEnable();
+            GridWindowPlugin.OnEnable();
         }
 
 
@@ -182,21 +185,21 @@ namespace LillyEFTPlugin
         public void Update()
         {
             #region GUI
-            if (InventoryScreenShow)
+            if (InventoryScreenShow && GridWindowPlugin.nTransform == null)
             {
                 if (SlotPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     SlotPanel.Value = !SlotPanel.Value;
                 }
-                if (SlotPanelSizeKey.Value.IsUp())// 단축키가 일치할때
+                else if (SlotPanelSizeKey.Value.IsUp())// 단축키가 일치할때
                 {
                     SlotOn.Value = !SlotOn.Value;
                 }
-                if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
+                else if (LeftPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     LeftPanel.Value = !LeftPanel.Value;
                 }
-                if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
+                else if (StashPanelKey.Value.IsUp())// 단축키가 일치할때
                 {
                     StashPanel.Value = !StashPanel.Value;
                 }
@@ -204,6 +207,7 @@ namespace LillyEFTPlugin
             #endregion
 
             WeaponPreviewPlugin.Update();
+            GridWindowPlugin.Update();
         }
 
         public void OnDisable()
@@ -324,7 +328,8 @@ namespace LillyEFTPlugin
         static Transform TacticalVest = null;
         static Transform Backpack = null;
         static Transform SecuredContainer = null;
-        
+        static Vector2 vContainersScrollview = new Vector2();
+
 
         [HarmonyPatch(typeof(InventoryScreen), "Awake")]
         [HarmonyPostfix]
@@ -349,10 +354,9 @@ namespace LillyEFTPlugin
             tContainersScrollview = tScrollviewParent.transform.Find("Containers Scrollview");
             rContainersScrollview = (RectTransform)tContainersScrollview;
             rContainersScrollview.anchorMin = Vector2.zero;
-            Vector2 v = new Vector2();
-            v.x = 10;
-            rContainersScrollview.anchoredPosition = v;
-            rContainersScrollview.offsetMin = v;
+            
+            rContainersScrollview.anchoredPosition = vContainersScrollview;
+            rContainersScrollview.offsetMin = vContainersScrollview;
 
             tContent = tContainersScrollview.transform.Find("Content");
 

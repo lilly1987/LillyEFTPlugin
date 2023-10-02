@@ -28,7 +28,8 @@ namespace LillyEFTPlugin
         static ConfigEntry<float> step;
 
         static bool isOn = false;
-        static Vector3 v = new Vector3();
+        static Vector3 vpos = new Vector3();
+        static Vector3 vsize;
 
         internal static void Awake(ConfigFile Config, ManualLogSource logger)
         {
@@ -55,6 +56,7 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
                     )
                 );
+            vsize = Vector3.one * size.Value;
             size.SettingChanged += Size_SettingChanged;
 
 
@@ -96,6 +98,7 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = Main.ordercount--, IsAdvanced = true }
                     )
                 );
+
         }
 
         private static void rk_SettingChanged()
@@ -111,8 +114,8 @@ namespace LillyEFTPlugin
         {
             if (isOn && Rotator)
             {
-                v.x = pos.Value;
-                Rotator.localPosition = v;
+                vpos.x = pos.Value;
+                Rotator.localPosition = vpos;
             }
         }
 
@@ -120,7 +123,8 @@ namespace LillyEFTPlugin
         {
             if (isOn && Rotator)
             {
-                Rotator.localScale = Vector3.one * size.Value;
+                vsize.Set(size.Value, size.Value, size.Value);
+                Rotator.localScale = vsize;
             }
         }
 

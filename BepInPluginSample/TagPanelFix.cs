@@ -19,7 +19,7 @@ namespace LillyEFTPlugin
 
         static ConfigEntry<bool> TagPanelFixOn;
         static ConfigEntry<float> TagPanelFiY;
-        static Vector3 TagPanelFiV;
+        static Vector3 TagPanelFiV=new Vector3();
         static ManualLogSource Logger;
 
         internal static void Awake(ConfigFile Config , ManualLogSource logger)
@@ -49,7 +49,8 @@ namespace LillyEFTPlugin
             if (TagPanelFixOn.Value)
             {
                 if (harmony == null)
-                    TagPanelFiV=new Vector3(0, TagPanelFiY.Value);
+                    TagPanelFiV.y = TagPanelFiY.Value;
+                    //TagPanelFiV =new Vector3(0, TagPanelFiY.Value);
                     try // 가급적 try 처리 해주기. 하모니 패치중에 오류나면 다른 플러그인까지 영향 미침
                     {
                         harmony = Harmony.CreateAndPatchAll(typeof(TagPanelFix));
@@ -105,8 +106,11 @@ namespace LillyEFTPlugin
             {
                 tagPanel.localPosition = TagPanelFiV;
                 
-                var tagName = tagPanel.Find("TagName");
-                tagName.gameObject.SetActive(true);
+                //var tagName = tagPanel.Find("TagName");
+                //tagName.gameObject.SetActive(true);
+
+                tagPanel.Find("TagName").gameObject.SetActive(true);
+                
                 //var textMeshProUGUI = tagName.GetComponent<TextMeshProUGUI>();
                 //textMeshProUGUI.horizontalAlignment = HorizontalAlignmentOptions.Left;
                 //___TagName.horizontalAlignment = HorizontalAlignmentOptions.Left;
