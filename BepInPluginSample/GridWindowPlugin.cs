@@ -97,7 +97,7 @@ namespace LillyEFTPlugin
                     , new ConfigurationManagerAttributes { Order = Main.ordercount-- }
                     )
                 );
-            head = Config.Bind("GridWindow", "head y fix", 600f,
+            head = Config.Bind("GridWindow", "head y fix", 500f,
                 new ConfigDescription(
                     "For fine tuning."
                     , new AcceptableValueRange<float>(0f, 2000f)
@@ -180,8 +180,8 @@ namespace LillyEFTPlugin
                 }
                 else if (SPk.Value.IsUp())// 단축키가 일치할때
                 {
-                    
                     vTransform.y = - nTransform.RectTransform().sizeDelta.y/2 + head.Value;
+                    Logger.LogWarning($"SPk.Value.IsUp() {vTransform.y}" );
                     nTransform.localPosition = vTransform;
                 }
                 else if (Xk.Value.IsUp())// 단축키가 일치할때
